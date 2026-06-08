@@ -25,7 +25,7 @@ def get_expanded_db():
             "status": "נדרש אישור תקן", "regulation": "צו יבוא חופשי: מחייב אישור דגם רשמי ממכון התקנים הישראלי (בדיקת בטיחות חשמלית ותאימות קרינה לפני שחרור מהמכס)."
         },
         {
-            "code": "87032210", "chapter": "פרק 87 - כלי רכב, רכיבים וציוד תחבורה",
+            "code": "87032210", "chapter": "פרק 87 - כ利 רכב, רכיבים וציוד תחבורה",
             "description": "כלי רכב מנועיים פרטיים להסעת נוסעים, בנפח מנוע בין 1,000 סמ\"ק ל-1,500 סמ\"ק",
             "customs": "7%", "purchase_tax": "83% (בניכוי זיכוי מס ירוק)", "vat": "17%", "total_estimated": "כפוף לציון זיהום",
             "status": "רישיון יבוא משרדי", "regulation": "פקודת היבוא והיצוא: חובת הצגת רישיון יבוא בתוקף מאת משרד התחבורה והבטיחות בדרכים. יבוא מסחרי מותנה ברישום יבואן רשמי/מקביל."
@@ -43,7 +43,7 @@ db_df = pd.DataFrame(get_expanded_db())
 # 3. חלוקת הדף הראשי: תוכן במרכז, תפריט "כל הפרקים" מצד שמאל
 col_content, col_spacer, col_sidebar_left = st.columns([3, 0.2, 1])
 
-# הגדרת תפריט "כל הפרקים" בצד שמאל ללא קוד HTML
+# הגדרת תפריט "כל הפרקים" בצד שמאל
 with col_sidebar_left:
     st.subheader("📁 כל הפרקים")
     chapter_options = ["כל הפרקים"] + list(db_df["chapter"].unique())
@@ -58,7 +58,7 @@ with col_content:
 
     search_options = [f"{row['code']} - {row['description']}" for _, row in filtered_db_for_search.iterrows()]
 
-    # 5. תיבת חיפוש נקייה לחלוטין עם השלמה אוטומטית (ללא כיתובים מעליה)
+    # 5. תיבת חיפוש נקייה לחלוטין עם השלמה אוטומטית
     selected_search = st.selectbox(
         "",
         options=search_options,
@@ -67,34 +67,37 @@ with col_content:
         label_visibility="collapsed"
     )
 
-    # 6. הצגת הנתונים עבור הפריט שנבחר מההשלמה האוטומטית
+    # 6. הצגת הנתונים עבור הפריט שנבחר (עם התיקון הלוגי ל-split ול-iloc)
     if selected_search:
-        selected_code = selected_search.split(" - ")[0]
-        row = db_df[db_df['code'] == selected_code].iloc[0]
+        selected_code = selected_search.split(" - ")[0]  # שליפת קוד המכס הבודד כמחרוזת
+        matching_rows = db_df[db_df['code'] == selected_code]
         
-        # הצגת התוצאה בכרטיסייה יציבה ומסודרת
-        with st.container(border=True):
-            col_code, col_status = st.columns(2)
-            col_code.subheader(f"🔢 פרט מכס: {row['code']}")
+        if not matching_rows.empty:
+            row = matching_rows.iloc[0]  # שליפת השורה הראשונה בצורה בטוחה ומספר עמודות תקין
             
-            if row['status'] == "יבוא חופשי":
-                col_status.success(row['status'])
-            else:
-                col_status.warning(row['status'])
+            # הצגת התוצאה בכרטיסייה יציבה ומסודרת
+            with st.container(border=True):
+                col_code, col_status = st.columns(2)
+                col_code.subheader(f"🔢 פרט מכס: {row['code']}")
                 
-            st.write(f"**📂 קטגוריה:** {row['chapter']}")
-            st.write(f"**📝 תיאור הפריט:** {row['description']}")
-            st.write("")
-            
-            # גריד מיסים (4 עמודות)
-            c1, c2, c3, c4 = st.columns(4)
-            c1.metric("שיעור מכס", row['customs'])
-            c2.metric("מס קנייה", row['purchase_tax'])
-            c3.metric("מע\"מ", row['vat'])
-            c4.metric("הערכת מס כוללת", row['total_estimated'])
-            
-            st.write("")
-            st.info(f"📋 **חוקיות יבוא ודרישות צו יבוא חופשי:**\n\n{row['regulation']}")
+                if row['status'] == "יבוא חופשי":
+                    col_status.success(row['status'])
+                else:
+                    col_status.warning(row['status'])
+                    
+                st.write(f"**📂 קטגוריה:** {row['chapter']}")
+                st.write(f"**📝 תיאור הפריט:** {row['description']}")
+                st.write("")
+                
+                # גריד מיסים (4 עמודות)
+                c1, c2, c3, c4 = st.columns(4)
+                c1.metric("שיעור מכס", row['customs'])
+                c2.metric("מס קנייה", row['purchase_tax'])
+                c3.metric("מע\"מ", row['vat'])
+                c4.metric("הערכת מס כוללת", row['total_estimated'])
+                
+                st.write("")
+                st.info(f"📋 **חוקיות יבוא ודרישות צו יבוא חופשי:**\n\n{row['regulation']}")
             
     elif not search_options:
         st.info("אין פריטים זמינים בפרק שנבחר.")
