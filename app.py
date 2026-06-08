@@ -43,9 +43,9 @@ db_df = pd.DataFrame(get_expanded_db())
 # 3. חלוקת הדף הראשי: תוכן במרכז, תפריט "כל הפרקים" מצד שמאל
 col_content, col_spacer, col_sidebar_left = st.columns([3, 0.2, 1])
 
-# הגדרת תפריט "כל הפרקים" בצד שמאל
+# הגדרת תפריט "כל הפרקים" בצד שמאל ללא קוד HTML
 with col_sidebar_left:
-    st.markdown("<h3 style='color: #0F172A; font-weight: 700; margin-bottom: 15px;'>📁 כל הפרקים</h3>", unsafe_allowed_html=True)
+    st.subheader("📁 כל הפרקים")
     chapter_options = ["כל הפרקים"] + list(db_df["chapter"].unique())
     selected_chapter = st.radio("בחר ענף/פרק לדפדוף מהיר:", chapter_options, label_visibility="collapsed")
 
