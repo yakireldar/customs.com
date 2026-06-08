@@ -25,7 +25,7 @@ def get_expanded_db():
             "status": "נדרש אישור תקן", "regulation": "צו יבוא חופשי: מחייב אישור דגם רשמי ממכון התקנים הישראלי (בדיקת בטיחות חשמלית ותאימות קרינה לפני שחרור מהמכס)."
         },
         {
-            "code": "87032210", "chapter": "פרק 87 - כ利 רכב, רכיבים וציוד תחבורה",
+            "code": "87032210", "chapter": "פרק 87 - כלי רכב, רכיבים וציוד תחבורה",
             "description": "כלי רכב מנועיים פרטיים להסעת נוסעים, בנפח מנוע בין 1,000 סמ\"ק ל-1,500 סמ\"ק",
             "customs": "7%", "purchase_tax": "83% (בניכוי זיכוי מס ירוק)", "vat": "17%", "total_estimated": "כפוף לציון זיהום",
             "status": "רישיון יבוא משרדי", "regulation": "פקודת היבוא והיצוא: חובת הצגת רישיון יבוא בתוקף מאת משרד התחבורה והבטיחות בדרכים. יבוא מסחרי מותנה ברישום יבואן רשמי/מקביל."
@@ -67,13 +67,13 @@ with col_content:
         label_visibility="collapsed"
     )
 
-    # 6. הצגת הנתונים עבור הפריט שנבחר (עם התיקון הלוגי ל-split ול-iloc)
+    # 6. הצגת הנתונים עבור הפריט שנבחר (עם התיקון הלוגי המאובטח)
     if selected_search:
-        selected_code = selected_search.split(" - ")[0]  # שליפת קוד המכס הבודד כמחרוזת
-        matching_rows = db_df[db_df['code'] == selected_code]
+        extracted_code = selected_search.split(" - ")[0]  # לוקח רק את מחרוזת המספר הראשונה
+        matching_rows = db_df[db_df['code'] == extracted_code]
         
         if not matching_rows.empty:
-            row = matching_rows.iloc[0]  # שליפת השורה הראשונה בצורה בטוחה ומספר עמודות תקין
+            row = matching_rows.iloc[0]  # שליפה תקינה ומאובטחת של השורה הראשונה
             
             # הצגת התוצאה בכרטיסייה יציבה ומסודרת
             with st.container(border=True):
