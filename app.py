@@ -4,7 +4,7 @@ import pandas as pd
 # 1. הגדרות דף רחב ונקי
 st.set_page_config(page_title="ספר מכס ומס קניה", page_icon="📦", layout="wide")
 
-# כותרת ראשית מעודכנת לבקשתך
+# כותרת ראשית מעודכנת
 st.title("ספר מכס ומס קניה")
 st.caption("מערכת חכמה לסיווג, בדיקת שיעורי מס וחוקיות יבוא (צו יבוא חופשי)")
 st.write("---")
@@ -66,8 +66,8 @@ if not filtered_results.empty:
     for _, row in filtered_results.iterrows():
         with st.container(border=True):
             
-            # שורת כותרת הפריט
-            col_code, col_status = st.columns()
+            # שורת כותרת הפריט - חלוקה ל-2 עמודות מוגדרת במפורש
+            col_code, col_status = st.columns(2)
             col_code.subheader(f"🔢 פרט מכס: {row['code']}")
             
             if row['status'] == "יבוא חופשי":
@@ -79,7 +79,7 @@ if not filtered_results.empty:
             st.write(f"**📝 תיאור הפריט:** {row['description']}")
             st.write("")
             
-            # גריד של 4 עמודות עבור נתוני המיסים
+            # גריד של 4 עמודות מוגדרת במפורש עבור נתוני המיסים
             c1, c2, c3, c4 = st.columns(4)
             c1.metric("שיעור מכס", row['customs'])
             c2.metric("מס קנייה", row['purchase_tax'])
