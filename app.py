@@ -8,7 +8,7 @@ st.set_page_config(page_title="ספר מכס ומס קניה", page_icon="📦",
 st.title("ספר מכס ומס קניה")
 st.write("---")
 
-# 2. בסיס נתונים אמיתי עם קודי המכס בני 4 ספרות (כולל 8536, 8471, 8703, 8528, 0406)
+# 2. בסיס נתונים אמיתי עם קודי המכס בני 4 ספרות
 @st.cache_data
 def get_real_customs_db():
     return [
@@ -20,7 +20,7 @@ def get_real_customs_db():
         },
         {
             "code": "8471", "chapter": "פרק 84 - מכשירים מכניים, מחשבים ואלקטרוניקה",
-            "description": "מכנות אוטומטיות לעיבוד נתונים ויחידות שלהן; קוראים מגנטיים או אופטיים (מחשבים, לפטופים, שרתים)",
+            "description": "מכונות אוטומטיות לעיבוד נתונים ויחידות שלהן; קוראים מגנטיים או אופטיים (מחשבים, לפטופים, שרתים)",
             "customs": "פטור (0%)", "purchase_tax": "פטור (0%)", "vat": "17%", "total_estimated": "17% (מע\"מ בלבד)",
             "status": "יבוא חופשי", "regulation": "אין הגבלות מכוח צו יבוא חופשי. פטור מאישור משרד התקשורת לציוד מחשוב סטנדרטי ביבוא מסחרי."
         },
@@ -47,7 +47,7 @@ def get_real_customs_db():
 db_df = pd.DataFrame(get_real_customs_db())
 
 # 3. חלוקת הדף: תוכן החיפוש במרכז (3), תפריט "כל הפרקים" לאורך בצד ימין (1)
-col_content, col_spacer, col_sidebar_right = st.columns([3, 0.2, 1])
+col_content, col_spacer, col_sidebar_right = st.columns([3, 0.2, 1.2])
 
 # הגדרת תפריט "כל הפרקים" בצד ימין
 with col_sidebar_right:
@@ -76,13 +76,13 @@ with col_content:
 
     st.write("<br>", unsafe_allowed_html=True)
 
-    # 6. הצגת הנתונים עבור הפריט שנבחר (כולל התיקונים הלוגיים של split ו-iloc)
+    # 6. הצגת הנתונים עבור הפריט שנבחר מההשלמה האוטומטית
     if selected_search:
-        extracted_code = selected_search.split(" - ")[0]  # תיקון 1: לוקח רק את קוד המספר כטקסט בודד
+        extracted_code = selected_search.split(" - ")[0]  # לוקח רק את קוד המספר הבודד
         matching_rows = db_df[db_df['code'] == extracted_code]
         
         if not matching_rows.empty:
-            row = matching_rows.iloc[0]  # תיקון 2: שליפה מאובטחת ותקינה של השורה הראשונה
+            row = matching_rows.iloc[0]  # שליפה תקינה ומאובטחת לחלוטין של השורה
             
             # הצגת התוצאה בכרטיסייה מעוצבת
             with st.container(border=True):
