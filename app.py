@@ -2,11 +2,11 @@ import streamlit as st
 import pandas as pd
 
 # 1. הגדרות דף רחב ונקי
-st.set_page_config(page_title="NFX - מרכז המכס והסחר הבינלאומי", page_icon="📦", layout="wide")
+st.set_page_config(page_title="ספר מכס ומס קניה", page_icon="📦", layout="wide")
 
-# כותרת ראשית בעיצוב נקי
-st.title("NFX - מרכז המכס והסחר הבינלאומי")
-st.caption("ספר המכס האלקטרוני המאוחד ומערכת בדיקת חוקיות יבוא (צו יבוא חופשי)")
+# כותרת ראשית מעודכנת לבקשתך
+st.title("ספר מכס ומס קניה")
+st.caption("מערכת חכמה לסיווג, בדיקת שיעורי מס וחוקיות יבוא (צו יבוא חופשי)")
 st.write("---")
 
 # 2. בסיס נתונים מובנה ומהיר
@@ -61,17 +61,15 @@ if search_input:
         filtered_results['description'].str.contains(search_input, case=False)
     ]
 
-# 6. הצגת התוצאות בכרטיסיות מובנות ויציבות (עולה ברשת בשבריר שנייה)
+# 6. הצגת התוצאות בכרטיסיות מובנות ויציבות
 if not filtered_results.empty:
     for _, row in filtered_results.iterrows():
-        # יצירת קופסה לבנה (Card) עם מסגרת עדינה
         with st.container(border=True):
             
             # שורת כותרת הפריט
-            col_code, col_status = st.columns([3, 1])
+            col_code, col_status = st.columns()
             col_code.subheader(f"🔢 פרט מכס: {row['code']}")
             
-            # צביעת סטטוס חוקיות היבוא באופן אוטומטי
             if row['status'] == "יבוא חופשי":
                 col_status.success(row['status'])
             else:
@@ -81,7 +79,7 @@ if not filtered_results.empty:
             st.write(f"**📝 תיאור הפריט:** {row['description']}")
             st.write("")
             
-            # גריד של 4 עמודות עבור נתוני המיסים (כמו ב-NFX)
+            # גריד של 4 עמודות עבור נתוני המיסים
             c1, c2, c3, c4 = st.columns(4)
             c1.metric("שיעור מכס", row['customs'])
             c2.metric("מס קנייה", row['purchase_tax'])
@@ -89,7 +87,6 @@ if not filtered_results.empty:
             c4.metric("הערכת מס כוללת", row['total_estimated'])
             
             st.write("")
-            # קוביית מידע מובנית עבור הרגולציה וצו יבוא חופשי
             st.info(f"📋 **חוקיות יבוא ודרישות צו יבוא חופשי:**\n\n{row['regulation']}")
 else:
     st.info("לא נמצאו תוצאות תואמות. נסה לשנות את מילת החיפוש או לאפס את תפריט הצד ל-'כל הפרקים'.")
