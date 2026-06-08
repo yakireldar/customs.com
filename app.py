@@ -4,9 +4,8 @@ import pandas as pd
 # 1. הגדרות דף רחב ונקי
 st.set_page_config(page_title="ספר מכס ומס קניה", page_icon="📦", layout="wide")
 
-# כותרת ראשית מעודכנת
+# כותרת ראשית נקייה וממוקדת
 st.title("ספר מכס ומס קניה")
-st.caption("מערכת חכמה לסיווג, בדיקת שיעורי מס וחוקיות יבוא (צו יבוא חופשי)")
 st.write("---")
 
 # 2. בסיס נתונים מובנה ומהיר
@@ -41,32 +40,40 @@ def get_expanded_db():
 
 db_df = pd.DataFrame(get_expanded_db())
 
-# 3. תפריט קטגוריות בצד (Sidebar)
-st.sidebar.header("📁 ניווט לפי פרקים")
-chapter_options = ["כל הפרקים"] + list(db_df["chapter"].unique())
-selected_chapter = st.sidebar.radio("בחר ענף/פרק לדפדוף מהיר:", chapter_options)
+# 3. חלוקת הדף הראשי: תוכן במרכז, תפריט "כל הפרקים" מצד שמאל
+col_content, col_spacer, col_sidebar_left = st.columns([3, 0.2, 1])
 
-# 4. שורת החיפוש המרכזית
-search_input = st.text_input("🔍 חפש לפי קוד פרט מכס או מילת מפתח (מחשב, רכב, גבינה):", placeholder="הקלד כאן לחיפוש מהיר...")
+# הגדרת תפריט "כל הפרקים" בצד שמאל
+with col_sidebar_left:
+    st.markdown("<h3 style='color: #0F172A; font-weight: 700; margin-bottom: 15px;'>📁 כל הפרקים</h3>", unsafe_allowed_html=True)
+    chapter_options = ["כל הפרקים"] + list(db_df["chapter"].unique())
+    selected_chapter = st.radio("בחר ענף/פרק לדפדוף מהיר:", chapter_options, label_visibility="collapsed")
 
-# 5. לוגיקת סינון
-filtered_results = db_df.copy()
+# אזור החיפוש והתוצאות במרכז הדף
+with col_content:
+    # 4. הכנת רשימת אפשרויות להשלמה אוטומטית בהתאם לפרק שנבחר משמאל
+    filtered_db_for_search = db_df.copy()
+    if selected_chapter != "כל הפרקים":
+        filtered_db_for_search = filtered_db_for_search[filtered_db_for_search['chapter'] == selected_chapter]
 
-if selected_chapter != "כל הפרקים":
-    filtered_results = filtered_results[filtered_results['chapter'] == selected_chapter]
+    search_options = [f"{row['code']} - {row['description']}" for _, row in filtered_db_for_search.iterrows()]
 
-if search_input:
-    filtered_results = filtered_results[
-        filtered_results['code'].str.contains(search_input) | 
-        filtered_results['description'].str.contains(search_input, case=False)
-    ]
+    # 5. תיבת חיפוש נקייה לחלוטין עם השלמה אוטומטית (ללא כיתובים מעליה)
+    selected_search = st.selectbox(
+        "",
+        options=search_options,
+        index=0 if search_options else None,
+        placeholder="🔍 הקלד מילת מפתח או קוד פרט מכס...",
+        label_visibility="collapsed"
+    )
 
-# 6. הצגת התוצאות בכרטיסיות מובנות ויציבות
-if not filtered_results.empty:
-    for _, row in filtered_results.iterrows():
+    # 6. הצגת הנתונים עבור הפריט שנבחר מההשלמה האוטומטית
+    if selected_search:
+        selected_code = selected_search.split(" - ")[0]
+        row = db_df[db_df['code'] == selected_code].iloc[0]
+        
+        # הצגת התוצאה בכרטיסייה יציבה ומסודרת
         with st.container(border=True):
-            
-            # שורת כותרת הפריט - חלוקה ל-2 עמודות מוגדרת במפורש
             col_code, col_status = st.columns(2)
             col_code.subheader(f"🔢 פרט מכס: {row['code']}")
             
@@ -79,7 +86,7 @@ if not filtered_results.empty:
             st.write(f"**📝 תיאור הפריט:** {row['description']}")
             st.write("")
             
-            # גריד של 4 עמודות מוגדרת במפורש עבור נתוני המיסים
+            # גריד מיסים (4 עמודות)
             c1, c2, c3, c4 = st.columns(4)
             c1.metric("שיעור מכס", row['customs'])
             c2.metric("מס קנייה", row['purchase_tax'])
@@ -88,5 +95,6 @@ if not filtered_results.empty:
             
             st.write("")
             st.info(f"📋 **חוקיות יבוא ודרישות צו יבוא חופשי:**\n\n{row['regulation']}")
-else:
-    st.info("לא נמצאו תוצאות תואמות. נסה לשנות את מילת החיפוש או לאפס את תפריט הצד ל-'כל הפרקים'.")
+            
+    elif not search_options:
+        st.info("אין פריטים זמינים בפרק שנבחר.")
