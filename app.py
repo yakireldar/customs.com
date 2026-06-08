@@ -5,17 +5,14 @@ from datetime import datetime
 # 1. הגדרות דף רחב
 st.set_page_config(page_title="NFX - מרכז המכס והסחר הבינלאומי", page_icon="📦", layout="wide")
 
-# 2. הזרקת הסטייל המדויק של אתר NFX (כולל עיצוב לתפריט הצד)
+# 2. הזרקת הסטייל המדויק של אתר NFX
 st.html("""
     <style>
-    /* רקע כללי נקי בגוון אפרפר-בהיר */
     .stApp {
         background-color: #F3F4F6;
         color: #1F2937;
         font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     }
-    
-    /* לוגו ומערכת הניווט העליונה של NFX */
     .nfx-navbar {
         display: flex;
         justify-content: space-between;
@@ -38,8 +35,6 @@ st.html("""
         color: #9CA3AF;
         font-size: 14px;
     }
-    
-    /* אזור כותרת וחיפוש מרכזי عנק */
     .hero-section {
         text-align: center;
         padding: 20px 0 10px 0;
@@ -55,8 +50,6 @@ st.html("""
         color: #64748B;
         margin-bottom: 25px;
     }
-    
-    /* מבנה תוצאת החיפוש הראשי - קוביית פריט המכס */
     .nfx-result-container {
         background-color: #FFFFFF;
         border-radius: 8px;
@@ -65,7 +58,6 @@ st.html("""
         margin-bottom: 20px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
-    
     .nfx-result-header {
         display: flex;
         justify-content: space-between;
@@ -93,8 +85,6 @@ st.html("""
         color: #991B1B;
         border: 1px solid #FCA5A5;
     }
-    
-    /* גריד נתונים מספריים - מיסים */
     .nfx-tax-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -118,8 +108,6 @@ st.html("""
         font-weight: 700;
         color: #0F172A;
     }
-    
-    /* קוביית חוקיות יבוא (צו יבוא חופשי) */
     .nfx-regulation-box {
         background-color: #FFFBEB;
         border: 1px solid #FDE68A;
@@ -138,7 +126,7 @@ st.html("""
     </style>
 """)
 
-# 3. בר ניווט עליון קבוע
+# 3. בר ניווט עליון
 st.markdown("""
     <div class="nfx-navbar">
         <div class="nfx-logo">NFX<span>.co.il</span></div>
@@ -154,7 +142,7 @@ st.markdown("""
     </div>
 """, unsafe_allowed_html=True)
 
-# בסיס נתונים מורחב הכולל שיוך לפרקים (Chapters)
+# בסיס נתונים
 @st.cache_data
 def get_expanded_db():
     return [
@@ -186,35 +174,30 @@ def get_expanded_db():
 
 db_df = pd.DataFrame(get_expanded_db())
 
-# 5. בניית תפריט הצד (Sidebar) לסינון לפי פרקים
+# 5. תפריט הצד
 st.sidebar.markdown("<h3 style='color: #0F172A; font-weight: 700; margin-bottom: 15px;'>ספר המכס לפי פרקים</h3>", unsafe_allowed_html=True)
-
-# הגדרת רשימת הפרקים הקיימים פלוס אפשרות לבחור הכל
 chapter_options = ["כל הפרקים"] + list(db_df["chapter"].unique())
 selected_chapter = st.sidebar.radio("בחר ענף/פרק לדפדוף מהיר:", chapter_options)
 
-# 6. שורת החיפוש המרכזית (טקסט חופשי)
-col_l, col_main, col_r = st.columns([1, 4, 1])
+# 6. שורת החיפוש
+col_l, col_main, col_r = st.columns()
 with col_main:
     search_input = st.text_input("", placeholder="🔍 הקלד מילת מפתח (למשל: מחשב, גבינה) או קוד פרט מכס מלא...", label_visibility="collapsed")
 
-# 7. לוגיקת סינון הנתונים (משלבת גם את הבחירה בפרק וגם את הטקסט החופשי)
+# 7. לוגיקת סינון
 filtered_results = db_df.copy()
 
-# אם נבחר פרק ספציפי בתפריט הצד, נסנן לפיו
 if selected_chapter != "כל הפרקים":
     filtered_results = filtered_results[filtered_results['chapter'] == selected_chapter]
 
-# אם המשתמש הקליד משהו בשורת החיפוש, נסנן בנוסף לפיו
 if search_input:
     filtered_results = filtered_results[
         filtered_results['code'].str.contains(search_input) | 
         filtered_results['description'].str.contains(search_input, case=False)
     ]
 
-# 8. הצגת התוצאות המעוצבות
+# 8. הצגת התוצאות
 if not filtered_results.empty:
-    # מציג כמה תוצאות נמצאו בהתאם לסינון הנוכחי
     if search_input or selected_chapter != "כל הפרקים":
         st.markdown(f"<p style='color: #64748B; font-size: 14px; margin-bottom: 15px;'>נמצאו {len(filtered_results)} פריטים המקיימים את תנאי הסינון:</p>", unsafe_allowed_html=True)
     
@@ -232,7 +215,6 @@ if not filtered_results.empty:
                     <b>תיאור הפריט בספר המכס:</b> {row['description']}
                 </div>
                 
-                <!-- גריד המיסים של NFX -->
                 <div class="nfx-tax-grid">
                     <div class="nfx-tax-card">
                         <div class="nfx-tax-label">שיעור מכס</div>
@@ -252,7 +234,6 @@ if not filtered_results.empty:
                     </div>
                 </div>
                 
-                <!-- חוקיות יבוא ורגולציה -->
                 <div class="nfx-regulation-box">
                     <div class="nfx-regulation-title">
                         📄 חוקיות יבוא ודרישות צו יבוא חופשי:
@@ -264,3 +245,4 @@ if not filtered_results.empty:
             </div>
         """, unsafe_allowed_html=True)
 else:
+    st.markdown("<div style='text-align: center; color: #64748B; margin-top: 40px;'>לא נמצאו תוצאות תואמות לשילוב החיפוש והפרק הנבחר. נסה לאפס את תפריט הצד ל'כל הפרקים'.</div>", unsafe_allowed_html=True)
