@@ -3,22 +3,12 @@ import pandas as pd
 import requests
 from datetime import datetime
 
-# 1. הגדרות דף
+# 1. הגדרות דף בסיסיות ונקיות
 st.set_page_config(page_title="NFX - תעריף המכס המעודכן", page_icon="📦", layout="wide")
 
-# הזרקת ה-CSS בצורה הנכונה והעדכנית ביותר כדי למנוע את השגיאה
-st.html("""
-    <style>
-    .stApp { background-color: #F8FAFC; color: #1E293B; font-family: 'Segoe UI', system-ui, sans-serif; }
-    .nfx-title { font-size: 32px; font-weight: 700; color: #0F172A; border-bottom: 2px solid #E2E8F0; padding-bottom: 12px; margin-bottom: 5px; }
-    .nfx-tagline { color: #64748B; font-size: 15px; margin-bottom: 20px; }
-    .update-bar { background-color: #EFF6FF; border: 1px solid #BFDBFE; color: #1E40AF; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
-    .customs-item-card { background-color: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 20px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .status-badge-free { background-color: #DCFCE7; color: #15803D; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; display: inline-block; }
-    .status-badge-restrict { background-color: #FEE2E2; color: #B91C1C; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; display: inline-block; }
-    .item-code-header { font-size: 18px; font-weight: 700; color: #2563EB; }
-    </style>
-""")
+# כותרות פשוטות ללא HTML כדי למנוע שגיאות שרת
+st.title("NFX - מרכז המכס והסחר הבינלאומי")
+st.caption("מערכת חכמה לסיווג, בדיקת שיעורי מס וחוקיות יבוא (צו יבוא חופשי)")
 
 # 2. מנגנון משיכה ורענון אוטומטי ממאגר הממשלתי (API של data.gov.il)
 @st.cache_data(ttl=86400)
@@ -47,57 +37,37 @@ def fetch_live_government_data():
     except Exception:
         fallback_data = [
             {"code": "84713000", "description": "מחשבים אישיים נישאים (לפטופים)", "customs": "0%", "purchase_tax": "פטור", "free_import_status": "יבוא חופשי", "requirements": "פטור מאישורים חריגים."},
-            {"code": "87032210", "description": "כלי רכב מנועיים פרטיים", "customs": "7%", "purchase_tax": "83%", "free_import_status": "הגבלות ואישורים", "requirements": "נדרש אישור בתוקם ממשרד התחבורה."},
+            {"code": "87032210", "description": "כלי רכב מנועיים פרטיים", "customs": "7%", "purchase_tax": "83%", "free_import_status": "הגבלות ואישורים", "requirements": "נדרש אישור בתוקף ממשרד התחבורה."},
             {"code": "04069000", "description": "גבינות קשות ומגוררות", "customs": "משתנה", "purchase_tax": "פטור", "free_import_status": "הגבלות ואישורים", "requirements": "אישור בריאות וטרינרי ותעודת כשרות."}
         ]
         return pd.DataFrame(fallback_data), "טעינה מגיבוי מקומי (שרת הממשלה לא זמין)"
 
 df, last_update_time = fetch_live_government_data()
 
-# 3. מבנה האתר (UI)
-st.markdown('<div class="nfx-title">NFX - מרכז המכס והסחר הבינלאומי</div>', unsafe_allow_html=True)
-st.markdown('<div class="nfx-tagline">מערכת חכמה לסיווג, בדיקת שיעורי מס וחוקיות יבוא (צו יבוא חופשי)</div>', unsafe_allow_html=True)
+# שורת סטטוס נקייה
+st.success(f"🔄 המידע מסונכרן באופן אוטומטי. עדכון אחרון: {last_update_time}")
 
-st.markdown(f"""
-    <div class="update-bar">
-        <span>🔄 <b>סטטוס סנכרון:</b> המידע מסונכרן באופן אוטומטי מול שרתי רשות המסים ומשרד הכלכלה.</span>
-        <span><b>עדכון אחרון:</b> {last_update_time}</span>
-    </div>
-""", unsafe_allow_html=True)
-
-search_query = st.text_input("", placeholder="הקלד קוד פרט מכס או מילת מפתח (למשל: מחשב, רכב)...", label_visibility="collapsed")
+# תיבת חיפוש
+search_query = st.text_input("חפש לפי קוד פרט מכס או מילת מפתח (למשל: מחשב, רכב, גבינה):", placeholder="הקלד כאן לחיפוש...")
 
 if search_query:
     filtered_df = df[df['code'].str.contains(search_query) | df['description'].str.contains(search_query, case=False)]
     
     if not filtered_df.empty:
-        st.markdown(f"<p style='color: #64748B; font-size: 14px;'>נמצאו {len(filtered_df)} תוצאות מעודכנות:</p>", unsafe_allow_html=True)
+        st.write(f"נמצאו {len(filtered_df)} תוצאות מעודכנות:")
         
         for index, row in filtered_df.iterrows():
-            badge = '<span class="status-badge-free">יבוא חופשי</span>' if row['free_import_status'] == "יבוא חופשי" else '<span class="status-badge-restrict">נדרש אישור / רגולציה</span>'
-            
-            st.markdown(f"""
-                <div class="customs-item-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <span class="item-code-header">פרט מכס: {row['code']}</span>
-                        {badge}
-                    </div>
-                    <div style="font-size: 16px; font-weight: 500; margin-bottom: 15px; color: #334155;">{row['description']}</div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background-color: #F1F5F9; padding: 12px; border-radius: 6px; margin-bottom: 12px;">
-                        <div>
-                            <strong style="color: #475569; font-size: 13px;">שיעור מכס עדכני:</strong><br>
-                            <span style="font-size: 15px; font-weight: 600; color: #0F172A;">{row['customs']}</span>
-                        </div>
-                        <div>
-                            <strong style="color: #475569; font-size: 13px;">מס קנייה:</strong><br>
-                            <span style="font-size: 15px; font-weight: 600; color: #0F172A;">{row['purchase_tax']}</span>
-                        </div>
-                    </div>
-                    <div>
-                        <strong style="color: #475569; font-size: 13px;">חוקיות יבוא ורגולציה (צו יבוא חופשי):</strong><br>
-                        <span style="font-size: 14px; color: #334155;">{row['requirements']}</span>
-                    </div>
-                </div>
-            """, unsafe_allow_html=True)
+            # שימוש ברכיב המובנה st.container ליצירת כרטיסייה נקייה ומסודרת
+            with st.container(border=True):
+                st.subheader(f"פרט מכס: {row['code']}")
+                st.write(f"**תיאור:** {row['description']}")
+                
+                # חלוקה לעמודות מידע
+                col1, col2, col3 = st.columns(3)
+                col1.metric("שיעור מכס", row['customs'])
+                col2.metric("מס קנייה", row['purchase_tax'])
+                col3.status(row['free_import_status'], state="complete" if row['free_import_status'] == "יבוא חופשי" else "error")
+                
+                st.info(f"**חוקיות יבוא ורגולציה (צו יבוא חופשי):** {row['requirements']}")
     else:
         st.info("לא נמצאו תוצאות. נסה מילת חיפוש אחרת.")
