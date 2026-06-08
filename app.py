@@ -5,7 +5,7 @@ from datetime import datetime
 # 1. הגדרות דף רחב
 st.set_page_config(page_title="NFX - מרכז המכס והסחר הבינלאומי", page_icon="📦", layout="wide")
 
-# 2. הזרקת הסטייל המדויק של אתר NFX
+# 2. הזרקת הסטייל המדויק של אתר NFX באמצעות st.html הבטוח
 st.html("""
     <style>
     .stApp {
@@ -127,22 +127,22 @@ st.html("""
 """)
 
 # 3. בר ניווט עליון
-st.markdown("""
+st.html("""
     <div class="nfx-navbar">
         <div class="nfx-logo">NFX<span>.co.il</span></div>
         <div class="nfx-nav-links">ספר המכס האלקטרוני | צו יבוא חופשי | רשות המסים ומשרד הכלכלה</div>
     </div>
-""", unsafe_allowed_html=True)
+""")
 
 # 4. אזור כותרת מרכזית
-st.markdown("""
+st.html("""
     <div class="hero-section">
         <div class="hero-title">מנוע חיפוש וסיווג פרטי מכס</div>
         <div class="hero-subtitle">איתור מהיר של שיעורי מכס, מס קנייה, מע"מ ואישורי חוקיות יבוא תחת ממשק אחד</div>
     </div>
-""", unsafe_allowed_html=True)
+""")
 
-# בסיס נתונים
+# בסיס נתונים לדוגמה
 @st.cache_data
 def get_expanded_db():
     return [
@@ -204,7 +204,7 @@ if not filtered_results.empty:
     for _, row in filtered_results.iterrows():
         badge_class = "nfx-badge-alert" if row['status'] != "יבוא חופשי" else ""
         
-        st.markdown(f"""
+        st.html(f"""
             <div class="nfx-result-container">
                 <div class="nfx-result-header">
                     <div class="nfx-code">פרט מכס: {row['code']} <span style='font-size:13px; font-weight:400; color:#64748B; margin-right:15px;'>({row['chapter']})</span></div>
@@ -243,6 +243,6 @@ if not filtered_results.empty:
                     </div>
                 </div>
             </div>
-        """, unsafe_allowed_html=True)
+        """)
 else:
     st.markdown("<div style='text-align: center; color: #64748B; margin-top: 40px;'>לא נמצאו תוצאות תואמות לשילוב החיפוש והפרק הנבחר. נסה לאפס את תפריט הצד ל'כל הפרקים'.</div>", unsafe_allowed_html=True)
