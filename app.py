@@ -1,12 +1,11 @@
 import streamlit as st
 import pandas as pd
-import requests
 from datetime import datetime
 
 # 1. הגדרות דף רחב
 st.set_page_config(page_title="NFX - מרכז המכס והסחר הבינלאומי", page_icon="📦", layout="wide")
 
-# 2. הזרקת הסטייל המדויק של אתר NFX (צבעי כחול-צי, כרטיסיות לבנות, פונטים חדים וניווט טאבים)
+# 2. הזרקת הסטייל המדויק של אתר NFX (כולל עיצוב לתפריט הצד)
 st.html("""
     <style>
     /* רקע כללי נקי בגוון אפרפר-בהיר */
@@ -40,10 +39,10 @@ st.html("""
         font-size: 14px;
     }
     
-    /* אזור כותרת וחיפוש מרכזי ענק */
+    /* אזור כותרת וחיפוש מרכזי عנק */
     .hero-section {
         text-align: center;
-        padding: 40px 0 20px 0;
+        padding: 20px 0 10px 0;
     }
     .hero-title {
         font-size: 36px;
@@ -54,7 +53,7 @@ st.html("""
     .hero-subtitle {
         font-size: 16px;
         color: #64748B;
-        margin-bottom: 30px;
+        margin-bottom: 25px;
     }
     
     /* מבנה תוצאת החיפוש הראשי - קוביית פריט המכס */
@@ -63,7 +62,7 @@ st.html("""
         border-radius: 8px;
         border: 1px solid #E5E7EB;
         padding: 25px;
-        margin-top: 20px;
+        margin-bottom: 20px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
     
@@ -139,7 +138,7 @@ st.html("""
     </style>
 """)
 
-# 3. בר ניווט עליון קבוע כמו באתר המקורי
+# 3. בר ניווט עליון קבוע
 st.markdown("""
     <div class="nfx-navbar">
         <div class="nfx-logo">NFX<span>.co.il</span></div>
@@ -147,7 +146,7 @@ st.markdown("""
     </div>
 """, unsafe_allowed_html=True)
 
-# 4. אזור כותרת וחיפוש (Hero Section)
+# 4. אזור כותרת מרכזית
 st.markdown("""
     <div class="hero-section">
         <div class="hero-title">מנוע חיפוש וסיווג פרטי מכס</div>
@@ -155,98 +154,113 @@ st.markdown("""
     </div>
 """, unsafe_allowed_html=True)
 
-# סימולציית בסיס הנתונים המלא של המכס (כדי להבטיח מהירות ועבודה ללא שגיאות)
+# בסיס נתונים מורחב הכולל שיוך לפרקים (Chapters)
 @st.cache_data
-def get_internal_db():
+def get_expanded_db():
     return [
         {
-            "code": "84713000",
+            "code": "84713000", "chapter": "פרק 84 - מכשירים מכניים, מחשבים ואלקטרוניקה",
             "description": "מחשבים אישיים נישאים (לפטופים) / טאבלטים במשקל שאינו עולה על 10 ק\"ג",
             "customs": "פטור (0%)", "purchase_tax": "פטור (0%)", "vat": "17%", "total_estimated": "17% (מע\"מ בלבד)",
             "status": "יבוא חופשי", "regulation": "אין הגבלות מכוח צו יבוא חופשי. פטור מאישור משרד התקשורת לחלקים ומערכות מחשב סטנדרטיות."
         },
         {
-            "code": "85287200",
+            "code": "85287200", "chapter": "פרק 85 - מכשירים חשמליים, טלוויזיות וציוד שמע",
             "description": "מקלטי טלוויזיה בצבע, הכוללים מכשיר הקלטה או שחזור של חוזי או קול",
             "customs": "פטור (0%)", "purchase_tax": "10%", "vat": "17%", "total_estimated": "28.7% משולב",
             "status": "נדרש אישור תקן", "regulation": "צו יבוא חופשי: מחייב אישור דגם רשמי ממכון התקנים הישראלי (בדיקת בטיחות חשמלית ותאימות קרינה לפני שחרור מהמכס)."
         },
         {
-            "code": "87032210",
+            "code": "87032210", "chapter": "פרק 87 - כלי רכב, רכיבים וציוד תחבורה",
             "description": "כלי רכב מנועיים פרטיים להסעת נוסעים, בנפח מנוע בין 1,000 סמ\"ק ל-1,500 סמ\"ק",
             "customs": "7%", "purchase_tax": "83% (בניכוי זיכוי מס ירוק)", "vat": "17%", "total_estimated": "כפוף לציון זיהום",
             "status": "רישיון יבוא משרדי", "regulation": "פקודת היבוא והיצוא: חובת הצגת רישיון יבוא בתוקף מאת משרד התחבורה והבטיחות בדרכים. יבוא מסחרי מותנה ברישום יבואן רשמי/מקביל."
+        },
+        {
+            "code": "04069000", "chapter": "פרק 04 - מוצרי חלב, ביצים ומוצרים מן החי",
+            "description": "גבינות אחרות, מגוררות או באבקה, מכל סוג",
+            "customs": "סכומי מכס קצובים", "purchase_tax": "פטור (0%)", "vat": "17%", "total_estimated": "לפי מכסות חקלאיות",
+            "status": "אישורים ורגולציה חמורה", "regulation": "צו יבוא חופשי: מחייב הצגת תעודת בריאות וטרינרית ותעודת כשרות מקורית. כפוף לחלוקת מכסות פטורות של משרד החקלאות."
         }
     ]
 
-db_df = pd.DataFrame(get_internal_db())
+db_df = pd.DataFrame(get_expanded_db())
 
-# שורת החיפוש המרכזית (סטיילינג נקי, רחב וממורכז כמו NFX)
+# 5. בניית תפריט הצד (Sidebar) לסינון לפי פרקים
+st.sidebar.markdown("<h3 style='color: #0F172A; font-weight: 700; margin-bottom: 15px;'>ספר המכס לפי פרקים</h3>", unsafe_allowed_html=True)
+
+# הגדרת רשימת הפרקים הקיימים פלוס אפשרות לבחור הכל
+chapter_options = ["כל הפרקים"] + list(db_df["chapter"].unique())
+selected_chapter = st.sidebar.radio("בחר ענף/פרק לדפדוף מהיר:", chapter_options)
+
+# 6. שורת החיפוש המרכזית (טקסט חופשי)
 col_l, col_main, col_r = st.columns([1, 4, 1])
 with col_main:
-    search_input = st.text_input("", placeholder="🔍 הקלד מילת מפתח (למשל: מחשב, טלוויזיה, רכב) או קוד פרט מכס מלא...", label_visibility="collapsed")
+    search_input = st.text_input("", placeholder="🔍 הקלד מילת מפתח (למשל: מחשב, גבינה) או קוד פרט מכס מלא...", label_visibility="collapsed")
 
-# 5. פונקציונליות מנוע החיפוש והצגת הנתונים בפורמט NFX
+# 7. לוגיקת סינון הנתונים (משלבת גם את הבחירה בפרק וגם את הטקסט החופשי)
+filtered_results = db_df.copy()
+
+# אם נבחר פרק ספציפי בתפריט הצד, נסנן לפיו
+if selected_chapter != "כל הפרקים":
+    filtered_results = filtered_results[filtered_results['chapter'] == selected_chapter]
+
+# אם המשתמש הקליד משהו בשורת החיפוש, נסנן בנוסף לפיו
 if search_input:
-    # חיפוש חכם בתוך הקוד או התיאור
-    results = db_df[db_df['code'].str.contains(search_input) | db_df['description'].str.contains(search_input, case=False)]
+    filtered_results = filtered_results[
+        filtered_results['code'].str.contains(search_input) | 
+        filtered_results['description'].str.contains(search_input, case=False)
+    ]
+
+# 8. הצגת התוצאות המעוצבות
+if not filtered_results.empty:
+    # מציג כמה תוצאות נמצאו בהתאם לסינון הנוכחי
+    if search_input or selected_chapter != "כל הפרקים":
+        st.markdown(f"<p style='color: #64748B; font-size: 14px; margin-bottom: 15px;'>נמצאו {len(filtered_results)} פריטים המקיימים את תנאי הסינון:</p>", unsafe_allowed_html=True)
     
-    if not results.empty:
-        for _, row in results.iterrows():
-            badge_class = "nfx-badge-alert" if row['status'] != "יבוא חופשי" else ""
-            
-            # הדפסת קוביית התוצאה המעוצבת של NFX
-            st.markdown(f"""
-                <div class="nfx-result-container">
-                    <div class="nfx-result-header">
-                        <div class="nfx-code">פרט מכס: {row['code']}</div>
-                        <div class="nfx-badge {badge_class}">{row['status']}</div>
+    for _, row in filtered_results.iterrows():
+        badge_class = "nfx-badge-alert" if row['status'] != "יבוא חופשי" else ""
+        
+        st.markdown(f"""
+            <div class="nfx-result-container">
+                <div class="nfx-result-header">
+                    <div class="nfx-code">פרט מכס: {row['code']} <span style='font-size:13px; font-weight:400; color:#64748B; margin-right:15px;'>({row['chapter']})</span></div>
+                    <div class="nfx-badge {badge_class}">{row['status']}</div>
+                </div>
+                
+                <div style="font-size: 16px; font-weight: 600; color: #334155; margin-bottom: 20px; line-height: 1.6;">
+                    <b>תיאור הפריט בספר המכס:</b> {row['description']}
+                </div>
+                
+                <!-- גריד המיסים של NFX -->
+                <div class="nfx-tax-grid">
+                    <div class="nfx-tax-card">
+                        <div class="nfx-tax-label">שיעור מכס</div>
+                        <div class="nfx-tax-value" style="color: #2563EB;">{row['customs']}</div>
                     </div>
-                    
-                    <div style="font-size: 16px; font-weight: 600; color: #334155; margin-bottom: 20px; line-height: 1.6;">
-                        <b>תיאור הפריט בספר המכס:</b> {row['description']}
+                    <div class="nfx-tax-card">
+                        <div class="nfx-tax-label">מס קנייה</div>
+                        <div class="nfx-tax-value">{row['purchase_tax']}</div>
                     </div>
-                    
-                    <!-- טאבים ונתוני מיסים של NFX -->
-                    <div class="nfx-tax-grid">
-                        <div class="nfx-tax-card">
-                            <div class="nfx-tax-label">שיעור מכס</div>
-                            <div class="nfx-tax-value" style="color: #2563EB;">{row['customs']}</div>
-                        </div>
-                        <div class="nfx-tax-card">
-                            <div class="nfx-tax-label">מס קנייה</div>
-                            <div class="nfx-tax-value">{row['purchase_tax']}</div>
-                        </div>
-                        <div class="nfx-tax-card">
-                            <div class="nfx-tax-label">מע"מ</div>
-                            <div class="nfx-tax-value">{row['vat']}</div>
-                        </div>
-                        <div class="nfx-tax-card" style="background-color: #F0FDF4; border-color: #BBF7D0;">
-                            <div class="nfx-tax-label" style="color: #166534;">הערכת מס כוללת</div>
-                            <div class="nfx-tax-value" style="color: #166534;">{row['total_estimated']}</div>
-                        </div>
+                    <div class="nfx-tax-card">
+                        <div class="nfx-tax-label">מע"מ</div>
+                        <div class="nfx-tax-value">{row['vat']}</div>
                     </div>
-                    
-                    <!-- קוביית חוקיות יבוא ורגולציה ממשלתית -->
-                    <div class="nfx-regulation-box">
-                        <div class="nfx-regulation-title">
-                            📄 חוקיות יבוא ודרישות צו יבוא חופשי:
-                        </div>
-                        <div style="font-size: 14px; line-height: 1.5; margin-top: 5px;">
-                            {row['regulation']}
-                        </div>
+                    <div class="nfx-tax-card" style="background-color: #F0FDF4; border-color: #BBF7D0;">
+                        <div class="nfx-tax-label" style="color: #166534;">הערכת מס כוללת</div>
+                        <div class="nfx-tax-value" style="color: #166534;">{row['total_estimated']}</div>
                     </div>
                 </div>
-            """, unsafe_allowed_html=True)
-    else:
-        st.markdown("<div style='text-align: center; color: #64748B; margin-top: 20px;'>לא נמצאו תוצאות תואמות. נסה לחפש מילה כללית יותר.</div>", unsafe_allowed_html=True)
+                
+                <!-- חוקיות יבוא ורגולציה -->
+                <div class="nfx-regulation-box">
+                    <div class="nfx-regulation-title">
+                        📄 חוקיות יבוא ודרישות צו יבוא חופשי:
+                    </div>
+                    <div style="font-size: 14px; line-height: 1.5; margin-top: 5px;">
+                        {row['regulation']}
+                    </div>
+                </div>
+            </div>
+        """, unsafe_allowed_html=True)
 else:
-    # עמוד הבית של NFX (מציג מידע כללי לפני שמבצעים חיפוש)
-    st.markdown("<br><br>", unsafe_allowed_html=True)
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.info("📊 **עדכון תעריפים:** שיעורי המס והמכס מסונכרנים ישירות מול מערכת שער עולמי של רשות המסים.")
-    with c2:
-        st.info("🛡️ **חוקיות יבוא:** בדיקה אוטומטית של תוספות הצו (אישורי תקן, משרד הבריאות, התחבורה והתקשורת).")
-    with c3:
-        st.info("💡 **טיפ לחיפוש:** ניתן להזין קוד חלקי (למשל `8471`) כדי לראות את כל תתי-הסעיפים של הפרק.")
